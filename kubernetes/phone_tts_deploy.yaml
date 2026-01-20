@@ -1,0 +1,46 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: tts
+  namespace: Phone-TTS
+spec:
+  selector:
+    app: tts
+  ports:
+  - protocol: TCP
+    port: 8080
+    targetPort: 8080
+    nodePort: 8080 # <- optional; uncomment to pin a specific NodePort
+  type: NodePort # Espone su porta accessibile dall'esterno
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tts
+  namespace: Phone-TTS
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tts
+  template:
+    metadata:
+      labels:
+        app: tts
+    spec:
+      containers:
+      - name: tts
+        image: phone/phone-tts:latest # Oppure indica una versione specifica sul registro che più ti aggrada
+        ports:
+        - containerPort: 8080
+        resources:
+          limits:
+            cpu: '4'
+            memory: 8Gi
+            nvidia.com/gpu: 1 # Usa 1 GPU o una frazione di essa
+          requests:
+            cpu: '2'
+            memory: 4Gi
+            nvidia.com/gpu: 1 # Usa 1 GPU o una frazione di essa
+      nodeSelector:
+        nvidia.com/gpu.present: "true" # Pianifica solo sui nodi con GPU
